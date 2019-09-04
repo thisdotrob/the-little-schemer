@@ -4,15 +4,18 @@
 (load "insert")
 (load "minus")
 (load "multiply")
-(load "multirember")
+(load "rember")
 (load "plus")
 (load "subst")
 (load "length")
 (load "pick")
 (load "nums")
-(load "eqan")
 (load "occur")
 (load "one")
+(load "atom")
+(load "lat")
+(load "member")
+(load "leftmost")
 
 (test-begin "<")
 (test-assert "(< 1 2) is #t" (< 1 2))
@@ -59,6 +62,17 @@
             (multiinsertR 'b 'a '(a c a)) '(a b c a b))
 (test-end "multiinsertR")
 
+(test-begin "insertR*")
+(test-equal "(insertR* 'roast 'chuck '((how much (wood)) could ((a (wood) chuck)) (((chuck))) (if (a) ((wood chuck))) could chuck wood)) is '((how much (wood)) could ((a (wood) chuck roast)) (((chuck roast))) (if (a) ((wood chuck roast))) could chuck roast wood)"
+            (insertR* 'roast 'chuck '((how much (wood)) could ((a (wood) chuck)) (((chuck))) (if (a) ((wood chuck))) could chuck wood)) '((how much (wood)) could ((a (wood) chuck roast)) (((chuck roast))) (if (a) ((wood chuck roast))) could chuck roast wood))
+(test-end "insertR*")
+
+(test-begin "insertL*")
+(test-equal "(insertL* 'pecker 'chuck '((how much (wood)) could ((a (wood) chuck)) (((chuck))) (if (a) ((wood chuck))) could chuck wood)) is '((how much (wood)) could ((a (wood) pecker chuck)) (((pecker chuck))) (if (a) ((wood pecker chuck))) could pecker chuck wood)"
+            (insertL* 'pecker 'chuck '((how much (wood)) could ((a (wood) chuck)) (((chuck))) (if (a) ((wood chuck))) could chuck wood))
+            '((how much (wood)) could ((a (wood) pecker chuck)) (((pecker chuck))) (if (a) ((wood pecker chuck))) could pecker chuck wood))
+(test-end "insertL*")
+
 (test-begin "sub1")
 (test-eqv "(sub1 2) is 1" (sub1 2) 1)
 (test-end "sub1")
@@ -78,6 +92,13 @@
 (test-equal "(multirember 'a '(a b a b a)) is '(b b)"
             (multirember 'a '(a b a b a)) '(b b))
 (test-end "multirember")
+
+(test-begin "rember*")
+(test-equal "(rember* 'cup '((coffee) cup ((tea) cup) (and (hick)) cup)) is '((coffee) ((tea)) (and (hick)))"
+            (rember* 'cup '((coffee) cup ((tea) cup) (and (hick)) cup)) '((coffee) ((tea)) (and (hick))))
+(test-equal "(rember* 'sauce '(((tomato sauce)) ((bean) sauce) (and ((flying)) sauce))) is '(((tomato)) ((bean)) (and ((flying))))"
+            (rember* 'sauce '(((tomato sauce)) ((bean) sauce) (and ((flying)) sauce))) '(((tomato)) ((bean)) (and ((flying)))))
+(test-end "rember*")
 
 (test-begin "add1")
 (test-eqv "(add1 1) is 2" (add1 1) 2)
@@ -149,19 +170,58 @@
             (all-nums '(5 pears 6 prunes 9 dates)) '(5 6 9))
 (test-end "all-nums")
 
-(test-begin "eqan")
+(test-begin "eqan?")
 (test-assert "(eqan? 'a 'a) is #t" (eqan? 'a 'a))
 (test-assert "(eqan? 'b 'a) is #f" (not (eqan? 'b 'a)))
 (test-assert "(eqan? 0 0) is #t" (eqan? 0 0))
 (test-assert "(eqan? 1 0) is #f" (not (eqan? 1 0)))
-(test-end "eqan")
+(test-end "eqan?")
 
 (test-begin "occur")
 (test-eqv "(occur 'a '()) is 0" (occur 'a '()) 0)
 (test-eqv "(occur 'a '(a a a)) is 3" (occur 'a '(a a a)) 3)
 (test-end "occur")
 
+(test-begin "occur*")
+(test-eqv "(occur* 'banana '((banana) (split ((((banana ice))) (cream (banana)) sherbet)) (banana) (bread) (banana brandy))) is 5"
+          (occur* 'banana '((banana) (split ((((banana ice))) (cream (banana)) sherbet)) (banana) (bread) (banana brandy)))
+          5)
+(test-end "occur*")
+
+(test-begin "subst*")
+(test-equal "(subst* 'orange 'banana '((banana ) (split ((((banana ice))) (cream (banana)) sherbet)) (banana) (bread) (banana brandy))) is '((orange) (split ((((orange ice))) (cream (orange)) sherbet)) (orange) (bread) (orange brandy))"
+            (subst* 'orange 'banana '((banana ) (split ((((banana ice))) (cream (banana)) sherbet)) (banana) (bread) (banana brandy)))
+            '((orange) (split ((((orange ice))) (cream (orange)) sherbet)) (orange) (bread) (orange brandy)))
+(test-end "subst*")
+
 (test-begin "one?")
 (test-assert "(one? 1) is #t" (one? 1))
 (test-assert "(one? 2) is #f" (not (one? 0)))
 (test-end "one?")
+
+(test-begin "member*")
+(test-assert "(member* 'chips '((potato) (chips ((with) fish) (chips)))) is #t"
+             (member* 'chips '((potato) (chips ((with) fish) (chips)))))
+(test-end "member*")
+
+(test-begin "leftmost")
+(test-eqv  "(leftmost '((potato) (chips ((with) fish) (chips)))) is 'potato"
+           (leftmost '((potato) (chips ((with) fish) (chips))))
+           'potato)
+(test-eqv "(leftmost '(((hot) (tuna (and))) cheese)) is 'hot"
+          (leftmost '(((hot) (tuna (and))) cheese))
+          'hot)
+(test-end "leftmost")
+
+(test-begin "eqlist?")
+(test-assert "(eqlist? '(strawberry ice cream) '(strawberry ice cream)) is #t"
+             (eqlist? '(strawberry ice cream) '(strawberry ice cream)))
+(test-assert "(eqlist? '(strawberry ice cream) '(strawberry cream ice)) is #f"
+             (not (eqlist? '(strawberry ice cream) '(strawberry cream ice))))
+(test-assert "(eqlist? '(banana ((split))) '((banana) (split)) is #f)"
+             (not (eqlist? '(banana ((split))) '((banana) (split)))))
+(test-assert "(eqlist? '(beef ((sausage)) (and (soda))) '(beef ((salami)) (and (soda)))) is #f"
+             (not (eqlist? '(beef ((sausage)) (and (soda))) '(beef ((salami)) (and (soda))))))
+(test-assert "(eqlist? '(beef ((sausage)) (and (soda))) '(beef ((sausage)) (and (soda)))) is #t"
+             (eqlist? '(beef ((sausage)) (and (soda))) '(beef ((sausage)) (and (soda)))))
+(test-end "eqlist?")

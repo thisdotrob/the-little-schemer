@@ -16,3 +16,10 @@
     (cond ((null? lat) (quote ()))
           ((eq? (car lat) old) (cons new (multisubst new old (cdr lat))))
           (else (cons (car lat) (multisubst new old (cdr lat)))))))
+
+(define subst*
+  (lambda (new old l)
+    (cond ((null? l) '())
+          ((eq? old (car l)) (cons new (subst* new old (cdr l))))
+          ((atom? (car l)) (cons (car l) (subst* new old (cdr l))))
+          (else (cons (subst* new old (car l)) (subst* new old (cdr l)))))))
